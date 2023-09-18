@@ -80,18 +80,17 @@ def jacobi(a_matrix, b_matrix, epsilon):
         x_new = np.zeros(n)
         num_iteration += 1
         for row in range(n):
-            for j in range(n):
-                if j != row:
-                    x_new[row] += augmented_matrix[row, j] * x_old[j]
+            x_new[row] = np.sum(a_matrix[row] * x_old) - a_matrix[row, row] * x_old[row]
+
             x_new[row] = (augmented_matrix[row, n] - x_new[row]) / augmented_matrix[row, row]
+
+            error[row] = np.abs(np.sum(a_matrix[row] * x_old) - b_matrix[row])
+
         x_old = x_new.copy()
 
-        # Calculate error
-        error = np.abs(np.dot(a_matrix, x_new.reshape(-1, 1)) - b_matrix)
         if (error < epsilon).all():
             continue_loop = False
 
-    print("Number of iterations: ",num_iteration)
     print("Solution of system:")
     for i in range(n):
         print(f"x{i + 1} = {x_new[i]:.2f}")
@@ -100,6 +99,20 @@ def jacobi(a_matrix, b_matrix, epsilon):
     print(f"Error of Jacobi method when use epsilon = {epsilon:.2e}:")
     for i in range(n):
         print(f"Equation {i + 1}: error = {error_print[i]:.2e}")
+
+    print()
+    print("Result:")
+    print("Number of iterations: ",num_iteration)
+
+    x0 = np.linalg.solve(a_matrix, b_matrix).flatten()
+    error_val = np.sqrt(np.sum((x_new - x0) ** 2))
+    print(f"        Error = {error_val:.2e}")
+
+    incoherence_g = np.sqrt(np.sum((np.dot(a_matrix, np.transpose(x_new)) - b_matrix.flatten()) ** 2))
+    incoherence_0 = np.sqrt(np.sum((np.dot(a_matrix, x0) - b_matrix.flatten()) ** 2))
+
+    print(f"incoherence_g = {incoherence_g:.2e}")
+    print(f"incoherence_0 = {incoherence_0:.2e}")
 
 
 def generate_DD_matrix(n):
@@ -116,9 +129,17 @@ def generate_DD_matrix(n):
 
 def main():
     n = 200
-    epsilon = 0.1
+    epsilon = 1.0e-10
     variable_matrix = generate_DD_matrix(n)
     constant_matrix = np.random.rand(n, 1)
+
+    # variable = np.array([
+    #     [9, 2, 3],
+    #     [1, 12, 9],
+    #     [4, 6, 14]
+    # ])
+    # constant = np.array([[7], [2], [1]])
+
     jacobi(variable_matrix, constant_matrix, epsilon)
 
 
