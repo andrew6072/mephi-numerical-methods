@@ -2,6 +2,9 @@ import numpy as np
 
 INF = 10e9
 
+def norm(vec):
+    return np.max(np.abs(vec))
+
 def check_DD(matrix):
     # Check if the matrix is square
     if matrix.shape[0] != matrix.shape[1]:
@@ -62,7 +65,7 @@ def jacobi(a_matrix, b_matrix, epsilon):
         print("ERROR: Square matrix is not given")
         return
 
-    if b_matrix.shape[1] > 1 or b_matrix.shape[0] != a_matrix.shape[0]:
+    if b_matrix.shape[0] != a_matrix.shape[0]:
         print("ERROR: Constant vector incorrectly sized")
         return
 
@@ -70,13 +73,12 @@ def jacobi(a_matrix, b_matrix, epsilon):
     x_old = np.zeros(n)
     x_new = np.zeros(n)
     new_line = "\n"
-    augmented_matrix = np.concatenate((a_matrix, b_matrix), axis=1, dtype=float)
+    augmented_matrix = np.concatenate((a_matrix, b_matrix.reshape((n, 1))), axis=1, dtype=float)
     print(f"Initial augmented matrix: {new_line}{augmented_matrix}")
     print("Solving:")
 
-    error = np.zeros((n,1))
-    continue_loop = True
-    while continue_loop:
+    error = 1.0e10
+    while error > epsilon:
         x_new = np.zeros(n)
         num_iteration += 1
         for row in range(n):
@@ -84,32 +86,28 @@ def jacobi(a_matrix, b_matrix, epsilon):
 
             x_new[row] = (augmented_matrix[row, n] - x_new[row]) / augmented_matrix[row, row]
 
-            error[row] = np.abs(np.sum(a_matrix[row] * x_old) - b_matrix[row])
+
+        error = norm(a_matrix @ x_new - b_matrix)
 
         x_old = x_new.copy()
-
-        if (error < epsilon).all():
-            continue_loop = False
 
     print("Solution of system:")
     for i in range(n):
         print(f"x{i + 1} = {x_new[i]:.2f}")
 
-    error_print = error.reshape(-1)
     print(f"Error of Jacobi method when use epsilon = {epsilon:.2e}:")
-    for i in range(n):
-        print(f"Equation {i + 1}: error = {error_print[i]:.2e}")
+    print(f": error = {error:.2e}")
 
     print()
     print("Result:")
     print("Number of iterations: ",num_iteration)
 
-    x0 = np.linalg.solve(a_matrix, b_matrix).flatten()
-    error_val = np.sqrt(np.sum((x_new - x0) ** 2))
+    x0 = np.linalg.solve(a_matrix, b_matrix)
+    error_val = norm(x_new - x0)
     print(f"        Error = {error_val:.2e}")
 
-    incoherence_g = np.sqrt(np.sum((np.dot(a_matrix, np.transpose(x_new)) - b_matrix.flatten()) ** 2))
-    incoherence_0 = np.sqrt(np.sum((np.dot(a_matrix, x0) - b_matrix.flatten()) ** 2))
+    incoherence_g = norm(a_matrix @ x_new - b_matrix)
+    incoherence_0 = norm(a_matrix @ x0 - b_matrix)
 
     print(f"incoherence_g = {incoherence_g:.2e}")
     print(f"incoherence_0 = {incoherence_0:.2e}")
@@ -122,16 +120,18 @@ def generate_DD_matrix(n):
     # Make it diagonally dominant
     for i in range(n):
         diagonal_element = np.sum(np.abs(matrix[i, :])) - np.abs(matrix[i, i])
-        matrix[i, i] = diagonal_element + 1  # Add 1 to the diagonal element
+        matrix[i, i] = diagonal_element + 1.0  # Add 1 to the diagonal element
 
     return matrix
 
 
 def main():
-    n = 200
+    n = 20
     epsilon = 1.0e-10
     variable_matrix = generate_DD_matrix(n)
-    constant_matrix = np.random.rand(n, 1)
+    constant_matrix = np.random.rand(n)
+
+    print(constant_matrix)
 
     # variable = np.array([
     #     [9, 2, 3],
