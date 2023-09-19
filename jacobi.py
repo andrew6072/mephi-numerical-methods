@@ -2,8 +2,10 @@ import numpy as np
 
 INF = 10e9
 
+
 def norm(vec):
     return np.max(np.abs(vec))
+
 
 def check_DD(matrix):
     # Check if the matrix is square
@@ -20,6 +22,7 @@ def check_DD(matrix):
             return False
 
     return True
+
 
 def to_DD(variable, constant): # convert a matrix to DD form
     isDD = check_DD(variable)
@@ -72,10 +75,6 @@ def jacobi(a_matrix, b_matrix, epsilon):
     n = len(b_matrix)
     x_old = np.zeros(n)
     x_new = np.zeros(n)
-    new_line = "\n"
-    augmented_matrix = np.concatenate((a_matrix, b_matrix.reshape((n, 1))), axis=1, dtype=float)
-    print(f"Initial augmented matrix: {new_line}{augmented_matrix}")
-    print("Solving:")
 
     error = 1.0e10
     while error > epsilon:
@@ -84,33 +83,13 @@ def jacobi(a_matrix, b_matrix, epsilon):
         for row in range(n):
             x_new[row] = np.sum(a_matrix[row] * x_old) - a_matrix[row, row] * x_old[row]
 
-            x_new[row] = (augmented_matrix[row, n] - x_new[row]) / augmented_matrix[row, row]
-
+            x_new[row] = (b_matrix[row] - x_new[row]) / a_matrix[row, row]
 
         error = norm(a_matrix @ x_new - b_matrix)
 
         x_old = x_new.copy()
 
-    print("Solution of system:")
-    for i in range(n):
-        print(f"x{i + 1} = {x_new[i]:.2f}")
-
-    print(f"Error of Jacobi method when use epsilon = {epsilon:.2e}:")
-    print(f": error = {error:.2e}")
-
-    print()
-    print("Result:")
-    print("Number of iterations: ",num_iteration)
-
-    x0 = np.linalg.solve(a_matrix, b_matrix)
-    error_val = norm(x_new - x0)
-    print(f"        Error = {error_val:.2e}")
-
-    incoherence_g = norm(a_matrix @ x_new - b_matrix)
-    incoherence_0 = norm(a_matrix @ x0 - b_matrix)
-
-    print(f"incoherence_g = {incoherence_g:.2e}")
-    print(f"incoherence_0 = {incoherence_0:.2e}")
+    return x_new, num_iteration
 
 
 def generate_DD_matrix(n):
@@ -128,19 +107,22 @@ def generate_DD_matrix(n):
 def main():
     n = 20
     epsilon = 1.0e-10
-    variable_matrix = generate_DD_matrix(n)
-    constant_matrix = np.random.rand(n)
+    a_matrix = generate_DD_matrix(n)
+    b_matrix = np.random.rand(n)
+    x_new, num_iteration = jacobi(a_matrix, b_matrix, epsilon)
 
-    print(constant_matrix)
+    print("Result:")
+    print("Number of iterations: ", num_iteration)
 
-    # variable = np.array([
-    #     [9, 2, 3],
-    #     [1, 12, 9],
-    #     [4, 6, 14]
-    # ])
-    # constant = np.array([[7], [2], [1]])
+    x0 = np.linalg.solve(a_matrix, b_matrix)
+    error_val = norm(x_new - x0)
+    print(f"        Error = {error_val:.2e}")
 
-    jacobi(variable_matrix, constant_matrix, epsilon)
+    incoherence_g = norm(a_matrix @ x_new - b_matrix)
+    incoherence_0 = norm(a_matrix @ x0 - b_matrix)
+
+    print(f"incoherence_g = {incoherence_g:.2e}")
+    print(f"incoherence_0 = {incoherence_0:.2e}")
 
 
 main()
