@@ -4,5 +4,5 @@
     <option name="enabledOnSave" value="true" />
     <option name="sdkUUID" value="1bd94507-fa22-4210-88ea-344bf243f07b" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (numerical)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (mephi-numerical-methods)" project-jdk-type="Python SDK" />
 </project>
