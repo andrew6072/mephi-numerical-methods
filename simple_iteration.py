@@ -34,38 +34,38 @@ def solution(x, y):
 x = np.arange(xmin, xmax + h, h)
 y = np.arange(ymin, ymax + h, h)
 
+X, Y = np.meshgrid(x, y)
+
 analytical_solution = np.zeros((len(y), len(x)))
 for i, y_ in enumerate(y):
     for j, x_ in enumerate(x):
         analytical_solution[i][j] = solution(x_, y_)
 
 
-numerical_solution = np.zeros((len(y), len(x)))
-numerical_solution[0, :] = psi1(x)
-numerical_solution[len(y)-1, :] = psi2(x)
-numerical_solution[:, 0] = phi1(y)
-numerical_solution[:, len(x)-1] = phi2(y)
-
-print(np.linalg.norm(analytical_solution[0, :] - numerical_solution[0, :]))
-print(np.linalg.norm(analytical_solution[len(y)-1, :] - numerical_solution[len(y)-1, :]))
-print(np.linalg.norm(analytical_solution[:, 0] - numerical_solution[:, 0]))
-print(np.linalg.norm(analytical_solution[:, len(x)-1] - numerical_solution[:, len(x)-1]))
+# numerical_solution = f(X, Y)
+# numerical_solution[0, :] = psi1(x)
+# numerical_solution[len(y)-1, :] = psi2(x)
+# numerical_solution[:, 0] = phi1(y)
+# numerical_solution[:, len(x)-1] = phi2(y)
+#
+# print(np.linalg.norm(analytical_solution[0, :] - numerical_solution[0, :]))
+# print(np.linalg.norm(analytical_solution[len(y)-1, :] - numerical_solution[len(y)-1, :]))
+# print(np.linalg.norm(analytical_solution[:, 0] - numerical_solution[:, 0]))
+# print(np.linalg.norm(analytical_solution[:, len(x)-1] - numerical_solution[:, len(x)-1]))
 
 def simple_iteration(x, y, h, tau, num_iteration):
-    sol = np.zeros((len(y), len(x)))
+    sol = f(X, Y)
     sol[0, :] = psi1(x)
     sol[len(y) - 1, :] = psi2(x)
     sol[:, 0] = phi1(y)
     sol[:, len(x) - 1] = phi2(y)
     new_sol = np.copy(sol)
-    nx = len(x)
-    ny = len(y)
     for _ in range(num_iteration):
-        for i in range(1, ny - 1):
-            for j in range(1, nx - 1):
-                new_sol[i, j] = sol[i, j] + tau * ( (sol[i+1, j] - 2 * sol[i, j] + sol[i-1, j]) / h**2 +
-                                                    (sol[i, j+1] - 2 * sol[i, j] + sol[i, j-1]) / h**2 + f(x[j], y[i]))
+        new_sol[1:-1, 1:-1] = sol[1:-1, 1:-1] + tau * ( (sol[2:, 1:-1] - 2 * sol[1:-1, 1:-1] + sol[0:-2, 1:-1]) / h**2 +
+                                                        (sol[1:-1, 2:] - 2 * sol[1:-1, 1:-1] + sol[1:-1, 0:-2]) / h**2 + f(X[1:-1, 1:-1], Y[1:-1, 1:-1]))
         sol = np.copy(new_sol)
     return sol
 
-numerical_solution = simple_iteration(x, y, h, tau, 100)
+
+numerical_solution = simple_iteration(x, y, h, tau, 10000)
+print(np.linalg.norm(analytical_solution - numerical_solution))
